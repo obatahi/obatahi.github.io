@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>obatahi</title>
+<meta name="description" content="obatahi">
+<style>
+  :root {
+    --ink:    #16241b;
+    --paper:  #f1f0e9;
+    --moss:   #45654e;
+    --rule:   #cdd2c8;
+    --dim:    #7e857b;
+    --measure: 34em;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--paper); }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, "Noto Serif JP", serif;
+    font-size: 16.5px;
+    line-height: 2.15;
+    letter-spacing: 0.045em;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "palt" 1;
+  }
+
+  .label {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    line-height: 1.6;
+    font-feature-settings: normal;
+  }
+
+  .sheet {
+    max-width: 46em;
+    margin: 0 auto;
+    padding: 8em 2em 14em;
+    position: relative;
+  }
+
+  /* 体系を示す一本。内容ではなく規則の側の線 */
+  @media (min-width: 900px) {
+    .sheet::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8em;
+      bottom: 14em;
+      width: 1px;
+      background: var(--rule);
+    }
+  }
+
+  /* ------------ 表題 ------------ */
+
+  .masthead { margin-bottom: 6em; }
+
+  .masthead h1 {
+    margin: 0 0 2.6em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.42em;
+    text-transform: lowercase;
+    color: var(--moss);
+  }
+
+  /* 指示書。この場所の規則そのものを最初に置く */
+  .instruction {
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 1.9em 0 2em;
+    max-width: var(--measure);
+  }
+
+  .instruction .label {
+    color: var(--dim);
+    display: block;
+    margin-bottom: 1.4em;
+  }
+
+  .instruction ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: rule;
+    font-size: 14.5px;
+    line-height: 2.3;
+  }
+
+  .instruction li {
+    counter-increment: rule;
+    padding-left: 2.4em;
+    position: relative;
+  }
+
+  .instruction li::before {
+    content: counter(rule, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.15em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    color: var(--moss);
+  }
+
+  /* ------------ 記事 ------------ */
+
+  .entry {
+    padding-top: 5.2em;
+    margin-top: 5.2em;
+    border-top: 1px solid var(--rule);
+    max-width: var(--measure);
+  }
+
+  .entry:first-of-type {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .meta {
+    color: var(--dim);
+    margin-bottom: 2.2em;
+    display: flex;
+    gap: 1.6em;
+  }
+
+  .meta .no { color: var(--moss); }
+
+  .entry h2 {
+    margin: 0 0 1.9em;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 1.95;
+    letter-spacing: 0.03em;
+  }
+
+  .entry p { margin: 0 0 1.75em; }
+  .entry p:last-child { margin-bottom: 0; }
+
+  .entry blockquote {
+    margin: 2.6em 0;
+    padding-left: 1.6em;
+    border-left: 1px solid var(--rule);
+    color: #33453a;
+    font-size: 15.5px;
+  }
+
+  /* ------------ 停止 ------------ */
+  /* 停止した日も同じ番号を消費する。欠番は作らない */
+
+  .entry.halt .mark {
+    color: var(--moss);
+    font-size: 15px;
+    letter-spacing: 0.3em;
+  }
+
+  /* ------------ 奥付 ------------ */
+
+  footer {
+    margin-top: 9em;
+    padding-top: 2.2em;
+    border-top: 1px solid var(--ink);
+    color: var(--dim);
+    max-width: var(--measure);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  a { color: var(--moss); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  a:hover { border-bottom-color: var(--moss); }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; line-height: 2.05; }
+    .sheet { padding: 4.5em 1.5em 9em; }
+    .masthead { margin-bottom: 4.5em; }
+    .entry { padding-top: 4em; margin-top: 4em; }
+    .meta { flex-direction: column; gap: 0.2em; }
+    .entry h2 { font-size: 18.5px; }
+  }
+
+  @media print {
+    body { background: #fff; }
+    .sheet::before { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="masthead">
+    <h1>obatahi</h1>
+
+    <div class="instruction">
+      <span class="label">Instructions</span>
+      <ol>
+        <li>一日に一単位を置く。</li>
+        <li>単位に順位を与えない。</li>
+        <li>停止した日は停止と記す。理由は書かない。</li>
+        <li>番号は消費する。欠番は作らない。</li>
+      </ol>
+    </div>
+  </header>
+
+  <main>
+
+  <!-- 新しい記事は常にこのすぐ下に足す。古いものは下へ流れる。 -->
+
+  <article class="entry" id="001">
+    <div class="meta label">
+      <span class="no">No. 001</span>
+      <span>2026.07.31</span>
+    </div>
+    <h2>ここに表題</h2>
+    <p>ここに本文。段落ごとに p で囲む。上限二千五百字。超えたらそこで切る。</p>
+    <blockquote>引用を置く場合はここ。</blockquote>
+    <p>末尾に結論を置かない。観察を置いて終える。</p>
+  </article>
+
+  <!-- 停止した日は以下を複製し、番号と日付だけ変える。
+  <article class="entry halt" id="002">
+    <div class="meta label">
+      <span class="no">No. 002</span>
+      <span>2026.08.01</span>
+    </div>
+    <p class="mark">本日停止</p>
+  </article>
+  -->
+
+  </main>
+
+  <footer class="label">
+    <span>Hiroki</span>
+    <span>obatahi.com</span>
+  </footer>
+
+</div>
+</body>
+</html>
