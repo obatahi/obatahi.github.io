@@ -29,6 +29,8 @@
     letter-spacing: 0.045em;
     text-rendering: optimizeLegibility;
     font-feature-settings: "palt" 1;
+    line-break: strict;
+    word-break: auto-phrase;
   }
 
   .label {
@@ -146,7 +148,11 @@
     letter-spacing: 0.03em;
   }
 
-  .entry p { margin: 0 0 1.75em; }
+  .entry p {
+    margin: 0 0 1.75em;
+    text-align: justify;
+    text-justify: inter-ideograph;
+  }
   .entry p:last-child { margin-bottom: 0; }
 
   .entry blockquote {
@@ -155,6 +161,8 @@
     border-left: 1px solid var(--rule);
     color: #33453a;
     font-size: 15.5px;
+    text-align: justify;
+    text-justify: inter-ideograph;
   }
 
   /* ------------ 停止 ------------ */
