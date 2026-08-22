@@ -183,9 +183,21 @@
     color: var(--dim);
     max-width: var(--measure);
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
   }
 
+  .seal {
+    flex-basis: 100%;
+    margin-top: 2.4em;
+    font-size: 0.62em;
+    letter-spacing: 0.03em;
+    line-height: 1.7;
+    opacity: 0.42;
+    word-break: break-all;
+    user-select: all;
+  }
+  
   a { color: var(--moss); text-decoration: none; border-bottom: 1px solid var(--rule); }
   a:hover { border-bottom-color: var(--moss); }
 
@@ -196,11 +208,13 @@
     .entry { padding-top: 4em; margin-top: 4em; }
     .meta { flex-direction: column; gap: 0.2em; }
     .entry h2 { font-size: 18.5px; }
+    .seal { font-size: 0.58em; margin-top: 2em; }
   }
 
   @media print {
     body { background: #fff; }
     .sheet::before { display: none; }
+    .seal { opacity: 0.55; }
   }
 </style>
 </head>
@@ -529,6 +543,7 @@
 
   <footer class="label">
     <span>obatahi.com</span>
+    <span class="seal">cbe12de2ebfa86192d98c61149143b62137bd6c4bed172958cc727e01153dfd8</span>
   </footer>
 
 </div>
