@@ -1,1 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>nehan</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #ffffff;
+    transition: background-color 4s ease;
+  }
+  body.silver { background: #d7d9dc; }
 
+  textarea {
+    display: block;
+    box-sizing: border-box;
+    width: min(34em, 86vw);
+    height: 100%;
+    margin: 0 auto;
+    padding: 22vh 0 10vh;
+    border: 0;
+    outline: 0;
+    resize: none;
+    background: transparent;
+    color: #2a2b2e;
+    caret-color: #2a2b2e;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+    font-size: 1.0625rem;
+    line-height: 2;
+    letter-spacing: 0.02em;
+    transition: opacity 4s ease;
+  }
+  textarea::placeholder { color: #b4b6ba; }
+  textarea.fade { opacity: 0; }
+  textarea:disabled { visibility: hidden; }
+</style>
+</head>
+<body>
+<textarea id="n" autofocus spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Paradoxical go straight"></textarea>
+<script>
+  const n = document.getElementById('n');
+  const STILL = 17000;
+  const FADE = 4000;
+  let t, f;
+
+  n.addEventListener('input', () => {
+    clearTimeout(t);
+    clearTimeout(f);
+    n.classList.remove('fade');
+    t = setTimeout(extinguish, STILL);
+  });
+
+  function extinguish() {
+    n.classList.add('fade');
+    f = setTimeout(() => {
+      n.value = '';
+      n.placeholder = '';
+      n.disabled = true;
+      n.blur();
+      document.body.classList.add('silver');
+    }, FADE);
+  }
+</script>
+</body>
+</html>
