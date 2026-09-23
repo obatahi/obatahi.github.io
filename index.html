@@ -216,6 +216,10 @@
     .sheet::before { display: none; }
     .seal { opacity: 0.55; }
   }
+
+  .door{position:fixed;right:1.5rem;bottom:1.5rem;color:inherit;opacity:0;visibility:hidden;transition:opacity 4s}
+  .door.seen{visibility:visible;opacity:.2;transition:opacity .6s}
+  .door.seen.still{opacity:1;transition:opacity 4s}
 </style>
 
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -950,6 +954,20 @@
 </div>
 
 <script data-goatcounter="https://obatahi.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
+<a href="/nehan/" class="door" rel="nofollow">nehan</a>
+<script>
+  const d = document.querySelector('.door');
+  let t;
+  const reset = () => {
+    d.classList.remove('still');
+    clearTimeout(t);
+    t = setTimeout(() => d.classList.add('seen', 'still'), 17000);
+  };
+  ['mousemove','keydown','touchstart','scroll','wheel'].forEach(e => addEventListener(e, reset, {passive:true}));
+  document.addEventListener('visibilitychange', () => document.hidden ? clearTimeout(t) : reset());
+  reset();
+</script>
   
 </body>
 </html>
