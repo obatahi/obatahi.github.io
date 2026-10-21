@@ -77,9 +77,8 @@ def build():
                            lambda _: '<link rel="canonical" href="' + BASE + number + '/">',
                            page_head, count=1)
         page = (page_head + '</head>\n<body>\n<div class="sheet">\n'
-                '<header class="masthead"><h1><a href="/">obatahi</a></h1></header>\n'
+                '<header class="masthead"><h1><a href="https://obatahi.com/">obatahi</a></h1></header>\n'
                 '<main>\n' + article + '\n</main>\n'
-                '<nav aria-label="一覧"><a href="/#' + number + '">一覧に戻る</a></nav>\n'
                 + footer)
         folder = OUT / number
         folder.mkdir()

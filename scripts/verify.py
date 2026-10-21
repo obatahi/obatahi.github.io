@@ -28,7 +28,7 @@ for (number, title, description, article), home_article in zip(entries, home_art
     assert plain(article) == plain(home_article), number
     assert f'href="/{number}/"' in home_article, number
     assert f'<link rel="canonical" href="{BASE}{number}/">' in page, number
-    assert f'href="/#{number}"' in page, number
+    assert '一覧に戻る' not in page, number
     assert len(re.findall(r'<article\b', page)) == 1, number
     assert 'noindex' not in page.lower(), number
     parser = Links()
