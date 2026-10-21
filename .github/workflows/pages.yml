@@ -19,6 +19,7 @@ jobs:
       pages: read
     outputs:
       build_type: ${{ steps.mode.outputs.build_type }}
+      artifact_name: ${{ steps.mode.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v6
       - name: Build and verify
@@ -30,11 +31,13 @@ jobs:
         run: |
           mode=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')
           echo "build_type=$mode" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=github-pages-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
           if [ "$mode" != "workflow" ]; then
             echo 'Automatic publishing is pending: set Settings > Pages > Source to GitHub Actions, then run this workflow.' >> "$GITHUB_STEP_SUMMARY"
           fi
       - uses: actions/upload-pages-artifact@v4
         with:
+          name: ${{ steps.mode.outputs.artifact_name }}
           path: _site
   deploy:
     needs: build
@@ -49,3 +52,5 @@ jobs:
     steps:
       - uses: actions/deploy-pages@v4
         id: deployment
+        with:
+          artifact_name: ${{ needs.build.outputs.artifact_name }}
