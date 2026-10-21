@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>obatahi｜一日一単位</title>
+<title>obatahi | 一日一単位</title>
 <meta name="description" content="一日に一単位を置く。規則に従って観察を置いていく場所。">
 <link rel="canonical" href="https://obatahi.com/">
 <style>
@@ -142,6 +142,10 @@
   }
 
   .meta .no { color: var(--moss); }
+
+  .meta .no a { position: relative; display: inline-block; touch-action: manipulation; }
+  .meta .no a::after { content: ""; position: absolute; inset: -14px -10px; }
+  .meta .no a:focus-visible { outline: 2px solid var(--moss); outline-offset: 4px; }
 
   .entry h2 {
     margin: 0 0 1.9em;

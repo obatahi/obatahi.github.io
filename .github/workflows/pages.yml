@@ -23,7 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build and verify
-        run: python3 scripts/verify.py
+        run: |
+          node scripts/test-entry.mjs
+          python3 scripts/verify.py
       - name: Check publishing mode
         id: mode
         env:

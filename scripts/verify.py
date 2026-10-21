@@ -1,6 +1,7 @@
 """Verify preservation, canonical URLs, internal navigation and sitemap coverage."""
 from build import BASE, ROOT, OUT, build, plain
 from html.parser import HTMLParser
+from html import escape
 import re
 import xml.etree.ElementTree as ET
 
@@ -29,6 +30,10 @@ for (number, title, description, article), home_article in zip(entries, home_art
     assert f'href="/{number}/"' in home_article, number
     assert f'<link rel="canonical" href="{BASE}{number}/">' in page, number
     assert '一覧に戻る' not in page, number
+    expected_title = escape(number + ' ' + title + ' | obatahi', quote=True)
+    assert '<title>' + expected_title + '</title>' in page, number
+    assert f'<meta property="og:title" content="{expected_title}">' in page, number
+    assert f'<meta property="og:url" content="{BASE}{number}/">' in page, number
     assert len(re.findall(r'<article\b', page)) == 1, number
     assert 'noindex' not in page.lower(), number
     parser = Links()
@@ -47,7 +52,9 @@ urls = {node.text for node in ET.parse(OUT / 'sitemap.xml').iter()
         if node.tag.endswith('}loc')}
 assert urls == {BASE} | {BASE + number + '/' for number, *_ in entries}
 assert (OUT / 'nehan/index.html').read_bytes() == (ROOT / 'nehan/index.html').read_bytes()
-assert source.split('<main>', 1)[0] == home.split('<main>', 1)[0]
+assert source.split('</head>', 1)[1].split('<main>', 1)[0] == home.split('</head>', 1)[1].split('<main>', 1)[0]
 assert source.split('</main>', 1)[1] == home.split('</main>', 1)[1]
 assert 'Sitemap: ' + BASE + 'sitemap.xml' in (OUT / 'robots.txt').read_text()
+assert '<meta name="robots" content="noindex">' in (OUT / 'write/index.html').read_text()
+assert BASE + 'write/' not in urls
 print('Verified: all original entries, visible text, design, canonical URLs, links and sitemap coverage.')

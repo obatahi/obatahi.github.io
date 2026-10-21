@@ -26,6 +26,19 @@ def plain(markup):
     return ''.join(parser.parts).strip()
 
 
+def sharing(head, title, description, url, kind):
+    # Keep metadata consistent even when authoring from previously generated HTML.
+    head = re.sub(r'<meta\b[^>]*(?:property|name)=["\'](?:og:|twitter:)[^>]*>\s*', '', head)
+    values = [('property', 'og:type', kind), ('property', 'og:locale', 'ja_JP'),
+              ('property', 'og:site_name', 'obatahi'), ('property', 'og:title', title),
+              ('property', 'og:description', description), ('property', 'og:url', url),
+              ('name', 'twitter:card', 'summary'), ('name', 'twitter:title', title),
+              ('name', 'twitter:description', description)]
+    return head + '\n' + '\n'.join(
+        f'<meta {attribute}="{name}" content="{escape(value, quote=True)}">'
+        for attribute, name, value in values) + '\n'
+
+
 def build():
     source = (ROOT / 'index.html').read_text()
     # Commented authoring templates must not become duplicate entries.
@@ -58,6 +71,7 @@ def build():
     for name in ('CNAME', 'favicon.ico', 'favicon.svg', 'apple-touch-icon.png'):
         shutil.copy2(ROOT / name, OUT / name)
     shutil.copytree(ROOT / 'nehan', OUT / 'nehan')
+    shutil.copytree(ROOT / 'write', OUT / 'write')
     (OUT / '.nojekyll').touch()
 
     home = source
@@ -68,7 +82,7 @@ def build():
                         + number + '</a></span>', article, count=1, flags=re.S)
         home = home.replace(article, linked, 1)
         page_head = re.sub(r'<title>.*?</title>',
-                           lambda _: '<title>' + escape(number + ' ' + title + '｜obatahi') + '</title>',
+                           lambda _: '<title>' + escape(number + ' ' + title + ' | obatahi') + '</title>',
                            head, count=1, flags=re.S)
         page_head = re.sub(r'<meta name="description"[^>]*>',
                            lambda _: '<meta name="description" content="' + escape(description, quote=True) + '">',
@@ -76,6 +90,8 @@ def build():
         page_head = re.sub(r'<link rel="canonical"[^>]*>',
                            lambda _: '<link rel="canonical" href="' + BASE + number + '/">',
                            page_head, count=1)
+        page_head = sharing(page_head, number + ' ' + title + ' | obatahi', description,
+                            BASE + number + '/', 'article')
         page = (page_head + '</head>\n<body>\n<div class="sheet">\n'
                 '<header class="masthead"><h1><a href="https://obatahi.com/">obatahi</a></h1></header>\n'
                 '<main>\n' + article + '\n</main>\n'
@@ -83,7 +99,11 @@ def build():
         folder = OUT / number
         folder.mkdir()
         (folder / 'index.html').write_text(page)
-    (OUT / 'index.html').write_text(home)
+    home_head, home_body = home.split('</head>', 1)
+    home_title = plain(re.search(r'<title>(.*?)</title>', home_head, re.S)[1])
+    home_description = re.search(r'<meta name="description" content="([^"]*)"', home_head)[1]
+    (OUT / 'index.html').write_text(sharing(home_head, home_title, plain(home_description),
+                                          BASE, 'website') + '</head>' + home_body)
 
     namespace = 'http://www.sitemaps.org/schemas/sitemap/0.9'
     ET.register_namespace('', namespace)

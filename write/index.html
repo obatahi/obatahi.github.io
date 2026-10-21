@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>単位をつくる | obatahi</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  :root { color-scheme: light; --ink:#16241b; --paper:#f1f0e9; --moss:#45654e; --rule:#cdd2c8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:"Hiragino Kaku Gothic ProN",sans-serif; line-height:1.8; }
+  main { max-width:780px; margin:0 auto; padding:48px 24px 80px; }
+  header a { color:var(--moss); text-decoration:none; letter-spacing:.3em; font-size:14px; }
+  h1 { font-size:25px; font-weight:400; margin:36px 0 12px; }
+  h2 { font-size:19px; font-weight:400; }
+  p { margin:12px 0; }
+  .muted { color:#526158; font-size:14px; }
+  label { display:block; margin-top:22px; font-size:14px; }
+  input,textarea,button { font:inherit; }
+  input:not([type=checkbox]),textarea { display:block; width:100%; padding:12px; border:1px solid #8d9c91; background:#faf9f4; color:var(--ink); border-radius:3px; }
+  textarea { resize:vertical; }
+  input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible { outline:2px solid var(--moss); outline-offset:3px; }
+  .row { display:flex; gap:20px; flex-wrap:wrap; }
+  .row label { flex:1; min-width:130px; }
+  button,.button { display:inline-block; padding:11px 16px; min-height:46px; border:1px solid var(--moss); border-radius:3px; background:transparent; color:var(--ink); cursor:pointer; text-decoration:none; }
+  button.primary { background:var(--moss); color:white; }
+  button:disabled { opacity:.45; cursor:default; }
+  .actions { display:flex; flex-wrap:wrap; gap:12px; margin:22px 0; }
+  #status { min-height:1.8em; }
+  #error { color:#942c24; }
+  section,details { border-top:1px solid var(--rule); margin-top:32px; padding-top:20px; }
+  summary { cursor:pointer; padding:8px 0; }
+  #preview { font-family:"Hiragino Mincho ProN","Yu Mincho",serif; line-height:2.15; overflow-wrap:anywhere; }
+  #preview .meta { font-family:sans-serif; color:#526158; display:flex; gap:20px; font-size:12px; }
+  #preview blockquote { margin:24px 0; border-left:1px solid var(--rule); padding-left:20px; }
+  #code { font:12px/1.7 ui-monospace,monospace; }
+  [hidden] { display:none !important; }
+  @media(max-width:520px) { main { padding:28px 20px 60px; } .actions>* { width:100%; text-align:center; } }
+</style>
+</head>
+<body>
+<main>
+<header><a href="https://obatahi.com/">obatahi</a></header>
+<h1>単位をつくる</h1>
+<p class="muted">入力 → 確認 → コピー → GitHubで保存。ここでは公開されません。入力した文章は外部へ送信せず、ページを閉じると消えます。</p>
+<p id="status" class="muted" role="status">最新の原本を読み込み中…</p>
+<button id="reload" type="button">原本を読み直す</button>
+<details><summary>原本を読み込めないとき</summary><label>GitHubから保存した index.html を選択<input id="source-file" type="file" accept=".html,text/html"></label></details>
+<form id="form">
+<div class="row">
+<label>番号<input id="number" readonly aria-describedby="status" value="—"></label>
+<label>日付（日本時間）<input id="date" type="date" required></label>
+</div>
+<label><input id="halt" type="checkbox"> 停止を記す</label>
+<div id="writing">
+<label>題<input id="title" type="text" required autocomplete="off"></label>
+<label>本文<textarea id="body" rows="12" required aria-describedby="body-help"></textarea></label>
+<p id="body-help" class="muted">段落は空行で区切ります。引用は別の段落にして、各行の先頭に「&gt; 」を付けてください。HTMLタグは書かず、文章をそのまま入力できます。</p>
+</div>
+<label id="time-label" hidden>停止を記した時刻（日本時間）<input id="time" type="time"></label>
+<div class="actions"><button id="generate" class="primary" type="submit" disabled>確認してHTMLを生成</button></div>
+<p id="error" role="alert"></p>
+</form>
+<section id="result" hidden>
+<h2>表示の確認</h2>
+<div id="preview"></div>
+<h2>GitHubへ反映</h2>
+<p class="muted">単位のHTMLをコピーし、GitHubの index.html で現在の一番新しい単位の直前に貼り付けて「Commit changes」で保存します。個別ページとサイトマップは自動更新されます。</p>
+<div class="actions">
+<button id="copy" class="primary" type="button">単位のHTMLをコピー</button>
+<a class="button" href="https://github.com/obatahi/obatahi.github.io/edit/main/index.html" target="_blank" rel="noopener noreferrer">GitHubで編集</a>
+<button id="download" type="button">更新済み index.html を保存</button>
+</div>
+<p class="muted">保存したファイルは生成時点の原本に今回の単位だけを追加したものです。生成後にGitHubを編集した場合は、もう一度生成してください。</p>
+<label>コピー用HTML<textarea id="code" rows="10" readonly></textarea></label>
+<p id="copy-status" class="muted" role="status"></p>
+</section>
+</main>
+<script type="module" src="./writer.mjs"></script>
+</body>
+</html>
