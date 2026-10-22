@@ -65,6 +65,7 @@ def build():
 
     head = re.sub(r'[ \t]+$', '', source.split('</head>', 1)[0], flags=re.M)
     footer = re.sub(r'[ \t]+$', '', source.split('</main>', 1)[1], flags=re.M)
+    footer = re.sub(r'    <span class="archive-link">.*?</span>\n', '', footer)
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
@@ -105,15 +106,55 @@ def build():
     (OUT / 'index.html').write_text(sharing(home_head, home_title, plain(home_description),
                                           BASE, 'website') + '</head>' + home_body)
 
+    archive_head = re.sub(r'<title>.*?</title>', '<title>一覧 | obatahi</title>', head, count=1, flags=re.S)
+    archive_head = re.sub(r'<meta name="description"[^>]*>',
+                          '<meta name="description" content="番号・日付・題から、一日一単位を辿る。">', archive_head, count=1)
+    archive_head = re.sub(r'<link rel="canonical"[^>]*>',
+                          '<link rel="canonical" href="' + BASE + 'archive/">', archive_head, count=1)
+    archive_head = sharing(archive_head, '一覧 | obatahi', '番号・日付・題から、一日一単位を辿る。',
+                           BASE + 'archive/', 'website')
+    archive_head += """<style>
+.archive-title { font-size: 16px; font-weight: 400; margin: 0 0 2.5em; }
+.archive-list { list-style: none; margin: 0; padding: 0; }
+.archive-list li { border-bottom: 1px solid rgba(22,36,27,.12); }
+.archive-list a { display: grid; grid-template-columns: 3em 7em minmax(0,1fr); gap: 1em;
+  align-items: baseline; padding: 1em 0; min-height: 44px; box-sizing: border-box;
+  color: inherit; border: none; text-decoration: none; }
+.archive-list .archive-number, .archive-list time { font-family: "Helvetica Neue",Arial,sans-serif;
+  font-size: 11px; letter-spacing: .08em; color: var(--moss); }
+.archive-list a:focus-visible { outline: 2px solid var(--moss); outline-offset: 4px; }
+.archive-list a:hover { color: var(--moss); }
+@media (max-width: 640px) {
+  .archive-list a { grid-template-columns: 3em minmax(0,1fr); gap: .4em 1em; }
+  .archive-list .archive-name { grid-column: 2; }
+}
+</style>
+"""
+    rows = []
+    for number, title, description, article in entries:
+        date_match = re.search(r'<span>(\d{4}\.\d{2}\.\d{2})</span>', article)
+        if not date_match:
+            raise ValueError('Missing entry date: ' + number)
+        date = date_match[1]
+        rows.append(f'<li><a href="/{number}/"><span class="archive-number">{number}</span>'
+                    f'<time datetime="{date.replace(".", "-")}">{date}</time>'
+                    f'<span class="archive-name">{escape(title)}</span></a></li>')
+    (OUT / 'archive').mkdir()
+    (OUT / 'archive/index.html').write_text(
+        archive_head + '</head>\n<body>\n<div class="sheet">\n'
+        '<header class="masthead"><h1><a href="https://obatahi.com/">obatahi</a></h1></header>\n'
+        '<main><h2 class="archive-title">一覧</h2>\n<ol class="archive-list">\n'
+        + '\n'.join(rows) + '\n</ol></main>\n' + footer)
+
     namespace = 'http://www.sitemaps.org/schemas/sitemap/0.9'
     ET.register_namespace('', namespace)
     sitemap = ET.Element('{' + namespace + '}urlset')
-    for url in [BASE] + [BASE + entry[0] + '/' for entry in entries]:
+    for url in [BASE, BASE + 'archive/'] + [BASE + entry[0] + '/' for entry in entries]:
         item = ET.SubElement(sitemap, '{' + namespace + '}url')
         ET.SubElement(item, '{' + namespace + '}loc').text = url
     ET.ElementTree(sitemap).write(OUT / 'sitemap.xml', encoding='utf-8', xml_declaration=True)
     (OUT / 'robots.txt').write_text('User-agent: *\nAllow: /\n\nSitemap: ' + BASE + 'sitemap.xml\n')
-    print(f'Built {len(entries)} individual pages and {len(entries) + 1} sitemap URLs in {OUT}')
+    print(f'Built {len(entries)} individual pages and {len(entries) + 2} sitemap URLs in {OUT}')
     return entries
 
 
