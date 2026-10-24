@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://obatahi.com/sitemap.xml
