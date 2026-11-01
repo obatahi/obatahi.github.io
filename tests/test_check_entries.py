@@ -60,8 +60,11 @@ class Parsing(unittest.TestCase):
         self.units, self.problems = ce.parse_units(SOURCE)
 
     def test_all_units_found_and_commented_templates_ignored(self):
-        self.assertEqual(self.problems, [])
-        self.assertEqual([u.id for u in self.units], [f'{n:03d}' for n in range(93, 0, -1)])
+        # 単位は増え続けるので件数は固定しない。001〜093 が欠けず並び、雛形（コメント内）は数えない。
+        ids = [u.id for u in self.units]
+        self.assertEqual(ids[-93:], [f'{n:03d}' for n in range(93, 0, -1)])
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual(ids.count('001'), 1)
 
     def test_unit_fields(self):
         u = {x.id: x for x in self.units}
@@ -75,9 +78,11 @@ class Parsing(unittest.TestCase):
         self.assertTrue(any(b.tag == 'blockquote' for b in u['017'].blocks))
 
     def test_halts(self):
-        halts = [u.id for u in self.units if u.is_halt]
-        self.assertEqual(sorted(halts), ['008', '009', '013', '014', '015', '022', '025', '026',
-                                         '027', '029', '030', '031', '032', '037', '038'])
+        halts = {u.id for u in self.units if u.is_halt}
+        known = {'008', '009', '013', '014', '015', '022', '025', '026',
+                 '027', '029', '030', '031', '032', '037', '038'}
+        self.assertTrue(known <= halts)                       # 新しい停止の回が増えてもよい
+        self.assertTrue(all(i in known or int(i) > 93 for i in halts))
         u = {x.id: x for x in self.units}
         self.assertEqual((u['037'].date_text, u['037'].time), ('2026.09.05', '23:55'))
         self.assertEqual((u['038'].date_text, u['038'].time), ('2026.09.06', '23:24'))
@@ -240,9 +245,15 @@ class Check4Immutable(unittest.TestCase):
 
     def test_identical_and_new_unit_and_vessel_changes_pass(self):
         self.assertEqual(self.check(SOURCE), [])
-        new = ('<article class="entry" id="094">\n    <div class="meta label">\n      <span class="no">No. 094</span>\n'
-               '      <span>2026.11.01</span>\n    </div>\n    <h2>新</h2>\n    <p>新しい単位。</p>\n  </article>\n\n  ')
-        added = SOURCE.replace('<article class="entry" id="093">', new + '<article class="entry" id="093">', 1)
+        units = ce.parse_units(SOURCE)[0]
+        newest, number = units[0], f'{max(int(u.id) for u in units) + 1:03d}'
+        new = (f'<article class="entry" id="{number}">\n    <div class="meta label">\n      <span class="no">No. {number}</span>\n'
+               '      <span>2099.01.01</span>\n    </div>\n    <h2>新</h2>\n    <p>新しい単位。</p>\n  </article>\n\n  ')
+        anchor = f'<article class="entry" id="{newest.id}">'
+        if anchor not in SOURCE:                              # 最新が停止の回のとき
+            anchor = f'<article class="entry halt" id="{newest.id}">'
+        added = SOURCE.replace(anchor, new + anchor, 1)
+        self.assertNotEqual(added, SOURCE)
         self.assertEqual(self.check(added), [])
         vessel = (SOURCE.replace('--moss:   #45654e;', '--moss:   #000;')
                   .replace('<span class="seal">', '<span class="seal" data-x="1">')
@@ -304,6 +315,19 @@ class Check4Immutable(unittest.TestCase):
         self.assertTrue(self.check(unhalted))
 
 
+# CLI のテストは、置かれた単位（変わらない）だけを並べた固定データで動かす。
+# index.html に新しい単位が増えても、件数や違反の有無に左右されない。
+FIXTURE_IDS = ('093', '092', '083', '038', '037', '023', '017')
+FIXTURE = page(*[real(n) for n in FIXTURE_IDS])
+
+
+def clean_env(**extra):
+    env = {k: v for k, v in os.environ.items() if k != 'GITHUB_STEP_SUMMARY'}   # 実行サマリに書かせない
+    env['GITHUB_ACTIONS'] = ''
+    env.update(extra)
+    return env
+
+
 class Cli(unittest.TestCase):
     """実際に git リポジトリを作り、コマンドとして動かす（終了コードと日本語の出力）。"""
 
@@ -311,7 +335,7 @@ class Cli(unittest.TestCase):
         subprocess.run(['git', '-C', self.dir, *args], check=True, capture_output=True)
 
     def run_check(self, *args):
-        env = {**os.environ, 'GITHUB_ACTIONS': ''}
+        env = clean_env()
         done = subprocess.run([sys.executable, '-I', str(ROOT / 'scripts/check_entries.py'),
                                '--file', str(Path(self.dir) / 'index.html'), *args],
                               capture_output=True, text=True, encoding='utf-8', env=env)
@@ -327,16 +351,16 @@ class Cli(unittest.TestCase):
         self.addCleanup(self._tmp.cleanup)
         self.dir = self._tmp.name
         self.git('init', '-q', '-b', 'main')
-        self.commit(SOURCE, 'No. 093')
+        self.commit(FIXTURE, 'fixture')
 
     def test_clean_run_exits_zero(self):
         code, out = self.run_check('--base', 'HEAD')
         self.assertEqual(code, 0, out)
-        self.assertIn('検査した単位: 93', out)
+        self.assertIn(f'検査した単位: {len(FIXTURE_IDS)}', out)
         self.assertIn('失敗なし', out)
 
     def test_violations_exit_one_and_say_which_unit_which_check_how_many(self):
-        broken = SOURCE.replace('北には、関所がない。', '北には、関所はない。私は' + '字' * 260)
+        broken = FIXTURE.replace('北には、関所がない。', '北には、関所はない。私は' + '字' * 260)
         self.commit(broken, 'edit')
         code, out = self.run_check('--base', 'HEAD~1')
         self.assertEqual(code, 1, out)
@@ -346,7 +370,7 @@ class Cli(unittest.TestCase):
         self.assertIn('検査4「置かれた単位の不変」', out)
 
     def test_base_fallbacks_for_new_branch_push(self):
-        self.commit(SOURCE.replace('北には、関所がない。', '北には、関所はない。'), 'edit')
+        self.commit(FIXTURE.replace('北には、関所がない。', '北には、関所はない。'), 'edit')
         for base in ('0' * 40, '', 'deadbeef' * 5):
             args = ['--base', base] if base else []
             code, out = self.run_check(*args)
@@ -359,9 +383,9 @@ class Cli(unittest.TestCase):
         self.assertIn('検査4: スキップ', out)
 
     def test_github_annotations(self):
-        broken = SOURCE.replace('<p>北には、関所がない。</p>', '<p>' + '字' * 251 + '</p>', 1)
+        broken = FIXTURE.replace('<p>北には、関所がない。</p>', '<p>' + '字' * 251 + '</p>', 1)
         self.commit(broken, 'edit')
-        env = {**os.environ, 'GITHUB_ACTIONS': 'true'}
+        env = clean_env(GITHUB_ACTIONS='true')
         done = subprocess.run([sys.executable, '-I', str(ROOT / 'scripts/check_entries.py'),
                                '--file', str(Path(self.dir) / 'index.html'), '--no-base'],
                               capture_output=True, text=True, encoding='utf-8', env=env)
