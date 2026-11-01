@@ -19,6 +19,8 @@ jobs:
       - name: 検査スクリプトのテスト
         run: python3 -m unittest discover -s tests -v
       - name: 単位を検査する
+        # 検査スクリプトのテストが落ちても、単位そのものの検査は必ず行う。
+        if: ${{ !cancelled() }}
         env:
           # PR: 基点コミット（PR の変更だけが差分になる）。push: 押す前の先端。
           # 新しいブランチの初回 push など比較対象がない場合は、スクリプトが
