@@ -1,0 +1,27 @@
+name: Check entries
+# index.html の単位を検査する。公開（pages.yml）とは独立に、push とプルリクエストで動く。
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # 検査4（置かれた単位の不変）で直前の版と比べるため、履歴を全て取る。
+          fetch-depth: 0
+      - name: 検査スクリプトのテスト
+        run: python3 -m unittest discover -s tests -v
+      - name: 単位を検査する
+        env:
+          # PR: 基点コミット（PR の変更だけが差分になる）。push: 押す前の先端。
+          # 新しいブランチの初回 push など比較対象がない場合は、スクリプトが
+          # main との分岐点か直前のコミットで代用する。
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: python3 scripts/check_entries.py --base "$BASE_SHA"
