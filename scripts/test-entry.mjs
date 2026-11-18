@@ -23,7 +23,8 @@ assert.throws(() => makeEntry({number:'0" onclick="x',date:'2026-10-22',title:'�
 assert.throws(() => makeEntry({number,date:'2026-10-22',title:'',body:'本文'}), /題と本文/);
 assert.throws(() => makeEntry({number,date:'2026-10-22',halt:true,time:'24:00'}), /時刻/);
 const halt = makeEntry({number,date:'2026-10-22',halt:true,time:'23:59'});
-assert.ok(halt.includes('2026.10.22 23:59'));
+assert.ok(halt.includes('      <span>2026.10.22</span>\n      <span>23:59</span>\n'));
+assert.ok(!halt.includes('2026.10.22 23:59'));
 assert.ok(halt.includes('<p class="mark">本日停止</p>'));
 assert.ok(!halt.includes('<h2>'));
 console.log('Passed writer tests: escaping, quotes, source preservation, duplicate prevention, dates and stops.');

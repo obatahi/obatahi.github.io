@@ -32,8 +32,9 @@ export function makeEntry({number, date, title, body, halt = false, time = ''}) 
   return `  <article class="entry${halt ? ' halt' : ''}" id="${number}">
     <div class="meta label">
       <span class="no">No. ${number}</span>
-      <span>${date.replaceAll('-', '.')}${halt ? ' ' + time : ''}</span>
-    </div>
+      <span>${date.replaceAll('-', '.')}</span>
+${halt ? `      <span>${time}</span>
+` : ''}    </div>
 ${content}
   </article>`;
 }
